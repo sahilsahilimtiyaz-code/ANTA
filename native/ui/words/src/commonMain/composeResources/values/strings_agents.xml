@@ -515,4 +515,33 @@
     <string name="agentDraftTooLarge">This conversation’s newest turn is too large to include without losing text.</string>
     <string name="agentPhoneCheck">Check phone agents</string>
     <string name="agentsCatalogNeedsPhoneSetup">Set up the built-in server on this phone first. Then return here to install this agent.</string>
+    <string name="agentsImportTitle">Import an agent</string>
+    <string name="agentsImportLine">Add any agent you already have a file for, from a free Claude Code to your own build</string>
+    <string name="agentsImportInfoTitle">What you can import</string>
+    <string name="agentsImportInfo">A .tar.gz, .tar.bz2 or .zip archive, or one Linux arm64 program. It is unpacked into this phone's Ubuntu and runs there, not on a computer. Nothing is verified: you are running your own file.</string>
+    <string name="agentsImportInfoWhere">Its files stay in a folder for imported agents inside this phone's Ubuntu, with a launcher the agent helper starts like any other agent.</string>
+    <string name="agentsImportInfoProviders">Provider keys are written to the agent's own environment file inside this phone's Ubuntu. The app keeps no copy of them.</string>
+    <string name="agentsImportChoose">Choose the file</string>
+    <string name="agentsImportChosen">%1$s (%2$s)</string>
+    <string name="agentsImportName">Name</string>
+    <string name="agentsImportProgram">Program in the archive</string>
+    <string name="agentsImportProgramHelp">The file that starts the agent, such as bin/claude-acp. Leave it empty when the archive holds one program with the agent's name.</string>
+    <string name="agentsImportArguments">Arguments</string>
+    <string name="agentsImportArgumentsHelp">Separated by spaces, for example --acp. Leave empty for none.</string>
+    <string name="agentsImportProviders">Provider keys</string>
+    <string name="agentsImportProvidersHelp">One NAME=value per line, such as OPENAI_API_KEY=sk-… . Leave empty to set them later in the terminal.</string>
+    <string name="agentsImportInstall">Install</string>
+    <string name="agentsImportWorking">Unpacking into this phone's Ubuntu…</string>
+    <string name="agentsImportSection">Imported agents</string>
+    <string name="agentsImportRowLine">Runs as %1$s in this phone's Ubuntu</string>
+    <string name="agentsImportRemove">Remove %1$s</string>
+    <string name="agentsImportRemoveBody">Its files and its provider keys are deleted from this phone's Ubuntu. Nothing else is touched.</string>
+    <string name="agentsImportProblemUnsupported">That file is not a tar, a zip or a Linux program this phone can run.</string>
+    <string name="agentsImportProblemTooLarge">That file is empty or too large to unpack on this phone.</string>
+    <string name="agentsImportProblemName">Give it a short lowercase name that is not already used.</string>
+    <string name="agentsImportProblemProgram">The program must be a plain path inside the archive, with no leading slash and no "..".</string>
+    <string name="agentsImportProblemArguments">An argument has a line break, or there are too many of them.</string>
+    <string name="agentsImportProblemProvider">A provider key must read NAME=value, with an uppercase name.</string>
+    <string name="agentsImportProblemArchive">The archive was refused: it holds a link, a device or more data than an import may write.</string>
+    <string name="agentsImportProblemStorage">This phone's Ubuntu could not be read or written.</string>
 </resources>

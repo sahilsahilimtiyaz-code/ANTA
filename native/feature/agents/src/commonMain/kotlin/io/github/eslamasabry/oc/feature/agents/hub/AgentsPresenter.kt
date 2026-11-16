@@ -8,7 +8,16 @@ import io.github.eslamasabry.oc.core.common.ids.ProfileId
 import io.github.eslamasabry.oc.core.common.ids.SessionId
 import io.github.eslamasabry.oc.engine.agents.account.AgentAccountController
 import io.github.eslamasabry.oc.engine.agents.check.PhoneCheckFailure
+import io.github.eslamasabry.oc.engine.agents.imported.AgentImportResult
+import io.github.eslamasabry.oc.engine.agents.imported.AgentPickResult
+import io.github.eslamasabry.oc.engine.agents.imported.ImportedAgentDraft
+import io.github.eslamasabry.oc.engine.agents.imported.ImportedAgentProblem
+import io.github.eslamasabry.oc.engine.agents.imported.ImportedAgentRules
+import io.github.eslamasabry.oc.engine.agents.imported.ImportedAgents
+import io.github.eslamasabry.oc.engine.agents.imported.ImportedProviderKey
 import kotlin.time.Clock
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.collections.immutable.toPersistentSet
 import kotlinx.coroutines.CoroutineScope
@@ -27,7 +36,8 @@ import kotlinx.coroutines.launch
  * step never navigates or retries on its own. A computer is saved only when the person taps Save —
  * the check alone saves nothing (Flutter `probePaseoConnection` then save).
  */
-public class AgentsPresenter(
+public @Suppress("LongParameterList")
+class AgentsPresenter(
     private val scope: CoroutineScope,
     private val computers: AgentComputers,
     private val phone: PhoneAgents,
@@ -43,6 +53,8 @@ public class AgentsPresenter(
     private val openNewChat: (ProfileId?, String) -> Unit = { _, _ -> },
     /** Opens the agent's sign-in page on the phone's runtime owner. */
     private val openSignIn: (ProfileId, String) -> Unit = { _, _ -> },
+    /** The agents the person brought themselves; null where the platform cannot import (desktop, no built-in Linux). */
+    private val imported: ImportedAgents? = null,
 ) : AgentsActions {
     private val local = MutableStateFlow(AgentsUi(helperOffered = phoneHost != null))
 
@@ -67,6 +79,14 @@ public class AgentsPresenter(
     private var starting: Job? = null
 
     init {
+        imported?.let { source ->
+            local.update { it.copy(importOffered = true) }
+            scope.launch { source.agents.collect { agents -> local.update { it.copy(imported = agents) } } }
+            scope.launch {
+                source.refresh()
+                if (source.agents.value.isNotEmpty()) local.update { it.copy(imported = source.agents.value) }
+            }
+        }
         refreshPhone()
         // Phone agents connect on their own, as in Flutter: when the page opens with an agent installed, and again when
         // another agent finishes installing. Nothing is tried, and so nothing fails, while no agent is installed.
@@ -192,6 +212,8 @@ public class AgentsPresenter(
                 // too): the failure line would contradict it, so it goes.
                 val live = saved.any { it.id == phoneState.conversations && it.connected }
                 own.copy(
+                    // A phone whose Ubuntu is missing cannot take an import: the card is not offered there.
+                    importOffered = own.importOffered && phoneState.available,
                     computers = saved,
                     // While the page is starting the helper the recorded stop is already being answered.
                     phone =
@@ -902,6 +924,108 @@ public class AgentsPresenter(
                 local.update { it.copy(signOutFailed = agent.name) }
             // Re-read the real state either way; the status check decides, not the logout.
             phone.refresh()
+        }
+    }
+
+    override fun openImport() {
+        if (imported == null || !local.value.importOffered) return
+        local.update { it.copy(importOpen = true, importPicked = null, importProblem = null) }
+    }
+
+    override fun closeImport() {
+        if (local.value.importWorking) return
+        local.update { it.copy(importOpen = false, importPicked = null, importProblem = null) }
+    }
+
+    /**
+     * The file picker: the platform reads the file's first bytes, so a wrong file is refused before the person types
+     * anything. A cancel leaves the sheet as it was.
+     */
+    override fun pickImportFile() {
+        val source = imported ?: return
+        if (local.value.importWorking) return
+        local.update { it.copy(importProblem = null) }
+        scope.launch {
+            when (val answer = source.pick()) {
+                is AgentPickResult.Picked ->
+                    local.update { it.copy(importPicked = answer.file, importProblem = null) }
+                AgentPickResult.Cancelled -> Unit
+                is AgentPickResult.Refused ->
+                    local.update { it.copy(importPicked = null, importProblem = answer.problem) }
+            }
+        }
+    }
+
+    /**
+     * Unpacks the picked file. [providers] pairs are environment names with the values the person typed; they reach
+     * the platform only, so a key never sits in this page's state.
+     */
+    override fun installImport(name: String, command: String, args: String, providers: List<Pair<String, String>>) {
+        val source = imported ?: return
+        val picked = local.value.importPicked ?: return
+        if (local.value.importWorking) return
+        val typedName = name.trim().ifEmpty { picked.displayName.substringBeforeLast('.') }
+        val id = ImportedAgentRules.slugOf(typedName)
+        val typedArgs = args.split(' ', '\n', '\t').map { it.trim() }.filter { it.isNotEmpty() }
+        val cleanProviders = providers.map { (key, value) -> key.trim() to value }.filter { it.first.isNotEmpty() }
+        val commandOrDefault = command.trim().ifEmpty { picked.displayName.substringBeforeLast('.') }
+        val draft =
+            ImportedAgentDraft(
+                id = id,
+                name = typedName,
+                command = commandOrDefault,
+                args = typedArgs.toImmutableList(),
+                providerValues = cleanProviders.toMap().toImmutableMap(),
+            )
+        val refused =
+            local.value.imported.firstOrNull { it.id == id }?.let { ImportedAgentProblem.DuplicateId }
+                ?: ImportedAgentRules.problemWith(
+                    id,
+                    typedName,
+                    commandOrDefault,
+                    typedArgs,
+                    cleanProviders.map { (key, _) -> ImportedProviderKey(key) },
+                )
+        if (refused != null) {
+            local.update { it.copy(importProblem = refused) }
+            return
+        }
+        local.update { it.copy(importWorking = true, importProblem = null) }
+        scope.launch {
+            when (val result = source.install(picked, draft)) {
+                is AgentImportResult.Installed -> {
+                    local.update { it.copy(importWorking = false, importOpen = false, importPicked = null) }
+                    // The helper renders its providers at start: a new agent is usable from its next start.
+                    if (connectable(phone.state.value)) connectHelper()
+                }
+                is AgentImportResult.Refused ->
+                    local.update { it.copy(importWorking = false, importProblem = result.problem) }
+            }
+        }
+    }
+
+    override fun requestRemoveImported(id: String) {
+        if (local.value.importWorking) return
+        val agent = local.value.imported.firstOrNull { it.id == id } ?: return
+        local.update { it.copy(removingImported = agent) }
+    }
+
+    override fun cancelRemoveImported() {
+        if (!local.value.importWorking) local.update { it.copy(removingImported = null) }
+    }
+
+    override fun confirmRemoveImported() {
+        val source = imported ?: return
+        val agent = local.value.removingImported ?: return
+        local.update { it.copy(removingImported = null, importWorking = true) }
+        scope.launch {
+            val removed = source.remove(agent.id)
+            local.update {
+                it.copy(
+                    importWorking = false,
+                    importProblem = if (removed is Outcome.Failed) ImportedAgentProblem.Storage else null,
+                )
+            }
         }
     }
 

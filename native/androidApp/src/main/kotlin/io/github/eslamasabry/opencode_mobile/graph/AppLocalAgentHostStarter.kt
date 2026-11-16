@@ -177,7 +177,7 @@ class AppLocalAgentHostStarter(
                         linux.startPhoneAgentHelper(
                             owner.raw,
                             password,
-                            PaseoConfig.render().json,
+                            PaseoConfig.render(imported = AppImportedAgents.stored(app.filesDir)).json,
                             expectedHelperVersion = AgentPins.builtIn.paseo.version,
                             // As the Flutter app's ordinary start: an older tested helper runs as it is.
                             testedHelperVersions = AgentPins.builtIn.paseoTestedVersions.toSet(),

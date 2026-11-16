@@ -199,7 +199,7 @@ class NativeHandoffSource(
                             linux.startTrustedAgentHelper(
                                 owner.raw,
                                 password,
-                                PaseoConfig.render().json,
+                                PaseoConfig.render(imported = AppImportedAgents.stored(app.filesDir)).json,
                                 AgentPins.builtIn.paseo.version,
                             )
                         }

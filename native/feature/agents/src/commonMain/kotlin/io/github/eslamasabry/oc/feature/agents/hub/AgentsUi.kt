@@ -4,6 +4,9 @@ import io.github.eslamasabry.oc.core.common.Failure
 import io.github.eslamasabry.oc.core.common.ids.ProfileId
 import io.github.eslamasabry.oc.core.common.ids.SessionId
 import io.github.eslamasabry.oc.engine.agents.account.AccountPanelState
+import io.github.eslamasabry.oc.engine.agents.imported.ImportedAgent
+import io.github.eslamasabry.oc.engine.agents.imported.ImportedAgentProblem
+import io.github.eslamasabry.oc.engine.agents.imported.PickedAgentFile
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentListOf
@@ -78,6 +81,20 @@ public data class AgentsUi(
     val resetFailed: Boolean = false,
     val signingOutAgent: PhoneAgentRow? = null,
     val signOutFailed: String? = null,
+    /** The agents this person brought themselves, as the platform stored them. */
+    val imported: ImmutableList<ImportedAgent> = persistentListOf(),
+    /** True on a phone whose Ubuntu can take an import (the card is hidden where it cannot). */
+    val importOffered: Boolean = false,
+    /** The "Import an agent" sheet is open. */
+    val importOpen: Boolean = false,
+    /** The file the person picked, once it is a shape the app can unpack. */
+    val importPicked: PickedAgentFile? = null,
+    /** Why the last import (or pick) was refused; cleared by a new pick or a new attempt. */
+    val importProblem: ImportedAgentProblem? = null,
+    /** An import is unpacking into the phone's Linux. */
+    val importWorking: Boolean = false,
+    /** The imported agent whose removal is being confirmed. */
+    val removingImported: ImportedAgent? = null,
 ) {
     /**
      * What keeps the open install review from starting: the setup job that holds the phone (named, with its step and
@@ -228,4 +245,24 @@ public interface AgentsActions {
     public fun cancelRemoval()
 
     public fun confirmRemoval()
+
+    /** Opens "Import an agent": any archive or Linux program the person has for this phone's Ubuntu. */
+    public fun openImport() {}
+
+    public fun closeImport() {}
+
+    /** Opens the system file picker and reads what the file is. */
+    public fun pickImportFile() {}
+
+    /**
+     * Unpacks the picked file with the name, program and provider keys the person typed. [providers] are environment
+     * names with their values; they are handed to the platform only, never kept in this page's state.
+     */
+    public fun installImport(name: String, command: String, args: String, providers: List<Pair<String, String>>) {}
+
+    public fun requestRemoveImported(id: String) {}
+
+    public fun cancelRemoveImported() {}
+
+    public fun confirmRemoveImported() {}
 }

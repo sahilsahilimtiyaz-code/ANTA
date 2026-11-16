@@ -40,6 +40,8 @@ import io.github.eslamasabry.oc.engine.agents.install.InstallStart
 import io.github.eslamasabry.oc.engine.agents.probe.AgentAuthScripts
 import io.github.eslamasabry.oc.engine.agents.probe.AuthScriptAction
 import io.github.eslamasabry.oc.engine.agents.readiness.AgentSignInPhase
+import io.github.eslamasabry.opencode_mobile.ImportedAgentPayloads
+import java.io.File
 import io.github.eslamasabry.oc.engine.agents.removal.AgentRemoval
 import io.github.eslamasabry.oc.engine.agents.removal.AgentRemovalRunner
 import io.github.eslamasabry.oc.engine.agents.removal.RemovalReceipt
@@ -94,6 +96,7 @@ import org.json.JSONObject
 @Inject
 @ContributesBinding(AppScope::class, binding = binding<PhoneAgents>())
 @ContributesIntoSet(AppScope::class, binding = binding<ProfileCloser>())
+@Suppress("LongParameterList")
 class AppPhoneAgents(
     private val app: Application,
     private val dispatchers: AppDispatchers,
@@ -102,6 +105,7 @@ class AppPhoneAgents(
     private val registry: ConnectionRegistry,
     private val redactor: Redactor,
     private val payloads: PhonePayloadGuard,
+    private val importedAgents: AppImportedAgents,
 ) : PhoneAgents, ProfileCloser {
     override val owner: String = ":engine:agents:auth"
     private val admission = Any()
@@ -540,8 +544,27 @@ class AppPhoneAgents(
                                     shown?.phase != PhoneAgentInstallPhase.Installing,
                         )
                     }
+                    .toImmutableList()
+                    .plus(importedRows())
                     .toImmutableList(),
         )
+    }
+
+    /**
+     * The agents the person brought themselves, after the catalog's own. They are installed and signed in outside the
+     * app (by definition), so a copy that is on the phone is usable at first use; nothing here is checked or qualified.
+     */
+    private fun importedRows(): List<PhoneAgentRow> {
+        if (!linux.installed) return emptyList()
+        val guest = ImportedAgentPayloads(File(linux.rootfs, "home/oc"))
+        return importedAgents.agents.value.map { agent ->
+            PhoneAgentRow(
+                id = agent.id,
+                name = agent.name,
+                status =
+                    if (guest.present(agent)) PhoneAgentStatus.SetUpAtFirstUse else PhoneAgentStatus.Unavailable,
+            )
+        }
     }
 
     /** The row an agent shows while nothing is known about it (the catalog's own rows say "checking" too). */

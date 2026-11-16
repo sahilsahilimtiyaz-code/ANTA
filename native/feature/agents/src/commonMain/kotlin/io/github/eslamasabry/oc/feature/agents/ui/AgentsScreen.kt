@@ -243,6 +243,8 @@ public fun AgentsScreen(
             }
         }
         PhoneAgentSheet(state, actions, enabled)
+        ImportAgentSheet(state, actions, enabled)
+        RemoveImportedConfirm(state, actions)
         KitSheet(
             visible = state.revertingAgent != null,
             onDismissRequest = actions::cancelPreviousVersion,
@@ -511,6 +513,9 @@ private fun PhoneTab(
         )
     }
     if (state.phone.agents.isNotEmpty()) PhoneAgentTiles(state, actions)
+    // The person's own agents: offered on a phone whose Ubuntu can take one, listed under the catalog's tiles.
+    ImportAgentCard(state, actions, gutter)
+    ImportedAgentRows(state, actions, gutter)
     PhoneStatusLine(state, actions, enabled)
 }
 

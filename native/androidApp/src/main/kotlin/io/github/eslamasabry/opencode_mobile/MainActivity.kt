@@ -65,6 +65,7 @@ class MainActivity : ComponentActivity() {
         val graph = appGraph
         graph.previewRuntime.restoreSavedConnection()
         graph.composerFiles.attach(this)
+        graph.importedAgents.attach(this)
         graph.androidSessionImportFiles.attach(this)
         graph.projectExport.attach(this)
         // The once-only Termux notice joins the app notice slot (idempotent).
@@ -171,6 +172,7 @@ class MainActivity : ComponentActivity() {
         appGraph.projectExport.detach(this)
         shellReady = false
         appGraph.composerFiles.detach(this)
+        appGraph.importedAgents.detach()
         appGraph.androidSessionImportFiles.detach(this)
         super.onDestroy()
     }

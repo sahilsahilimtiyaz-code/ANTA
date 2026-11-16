@@ -1138,7 +1138,7 @@ internal constructor(
                     helper,
                     generation,
                     password,
-                    PaseoConfig.render().json,
+                    PaseoConfig.render(imported = AppImportedAgents.stored(app.filesDir)).json,
                 )
             }
             if (restored is Outcome.Failed) return@withLock restored

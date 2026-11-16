@@ -2,6 +2,7 @@ package io.github.eslamasabry.oc.engine.agents.host
 
 import io.github.eslamasabry.oc.engine.agents.catalog.AgentCatalog
 import io.github.eslamasabry.oc.engine.agents.catalog.AgentRoute
+import io.github.eslamasabry.oc.engine.agents.imported.ImportedAgent
 import io.github.eslamasabry.oc.engine.agents.json.AgentJson
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -28,7 +29,15 @@ public object PaseoConfig {
         "PASEO_SERVICE_PROXY_ENABLED" to "false",
     )
 
-    public fun render(catalog: AgentCatalog = AgentCatalog.builtIn, port: Int = STABLE_PORT): PaseoConfigFile {
+    /**
+     * [imported] are the agents the person brought themselves: they join the catalog's providers so a chat can name
+     * one, and their launch command is the launcher the import wrote, never a path a form typed.
+     */
+    public fun render(
+        catalog: AgentCatalog = AgentCatalog.builtIn,
+        port: Int = STABLE_PORT,
+        imported: List<ImportedAgent> = emptyList(),
+    ): PaseoConfigFile {
         fun obj(vararg pairs: Pair<String, JsonElement>) = JsonObject(linkedMapOf(*pairs))
         fun off() = obj("enabled" to JsonPrimitive(false))
         val providers = linkedMapOf<String, JsonElement>()
@@ -40,6 +49,15 @@ public object PaseoConfig {
                 "label" to JsonPrimitive(agent.name),
                 "command" to JsonArray(
                     (listOf("/home/oc/.local/bin/${recipe.executable}") + recipe.launchArgs).map(::JsonPrimitive),
+                ),
+            )
+        }
+        for (agent in imported) {
+            providers[agent.providerId] = obj(
+                "extends" to JsonPrimitive("acp"),
+                "label" to JsonPrimitive(agent.name),
+                "command" to JsonArray(
+                    (listOf(agent.guestLauncher) + agent.args).map(::JsonPrimitive),
                 ),
             )
         }

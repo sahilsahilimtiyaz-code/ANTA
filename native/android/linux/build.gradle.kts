@@ -26,6 +26,8 @@ fun catalogOr(alias: String, fallback: String): Any =
 dependencies {
     // B-175: the AppComponents shim stamps MainActivity intents with the per-install launch token.
     implementation(project(":core:common"))
+    // The imported-agent rules and the text the import writes live in the engine; this module only unpacks files.
+    implementation(project(":engine:agents"))
     implementation(catalogOr("commons-compress", "org.apache.commons:commons-compress:1.27.1"))
     implementation(libs.androidx.core.ktx)
     testImplementation(libs.junit4)

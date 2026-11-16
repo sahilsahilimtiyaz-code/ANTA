@@ -547,4 +547,33 @@
     <string name="agentPhoneCheck">فحص وكلاء الهاتف</string>
     <string name="agentsCatalogNeedsPhoneSetup">أعدّ الخادم المدمج على هذا الهاتف أولًا، ثم عُد إلى هنا لتثبيت هذا الوكيل.</string>
     <string name="agentDraftAsCopied">السجل كما سيُنسخ</string>
+    <string name="agentsImportTitle">استيراد وكيل</string>
+    <string name="agentsImportLine">أضف أي وكيل لديك ملفه، من Claude Code مجاني إلى نسخة من صنعك</string>
+    <string name="agentsImportInfoTitle">ما يمكن استيراده</string>
+    <string name="agentsImportInfo">أرشيف .tar.gz أو .tar.bz2 أو .zip، أو برنامج Linux واحد لمعمار arm64. يُفكَّك داخل Ubuntu على هذا الهاتف ويعمل هناك، لا على حاسوب. لا شيء مُتحقَّق منه: أنت تشغّل ملفك أنت.</string>
+    <string name="agentsImportInfoWhere">تبقى ملفاته في مجلد الوكلاء المستوردين داخل Ubuntu على هذا الهاتف، مع مشغّل يشغّله مساعد الوكلاء مثل أي وكيل آخر.</string>
+    <string name="agentsImportInfoProviders">تُكتب مفاتيح المزوّد في ملف بيئة الوكيل نفسه داخل Ubuntu على هذا الهاتف، ولا يحتفظ التطبيق بأي نسخة منها.</string>
+    <string name="agentsImportChoose">اختر الملف</string>
+    <string name="agentsImportChosen">%1$s (%2$s)</string>
+    <string name="agentsImportName">الاسم</string>
+    <string name="agentsImportProgram">البرنامج داخل الأرشيف</string>
+    <string name="agentsImportProgramHelp">الملف الذي يبدأ الوكيل، مثل bin/claude-acp. اتركه فارغًا إذا كان الأرشيف يحوي برنامجًا واحدًا باسم الوكيل.</string>
+    <string name="agentsImportArguments">الوسائط</string>
+    <string name="agentsImportArgumentsHelp">مفصولة بمسافات، مثل --acp. اتركه فارغًا لعدم تمرير أي وسيطة.</string>
+    <string name="agentsImportProviders">مفاتيح المزوّد</string>
+    <string name="agentsImportProvidersHelp">سطر واحد لكل NAME=value، مثل OPENAI_API_KEY=sk-… . اتركه فارغًا لضبطها لاحقًا في الطرفية.</string>
+    <string name="agentsImportInstall">تثبيت</string>
+    <string name="agentsImportWorking">يُفكَّك داخل Ubuntu على هذا الهاتف…</string>
+    <string name="agentsImportSection">الوكلاء المستوردون</string>
+    <string name="agentsImportRowLine">يعمل باسم %1$s داخل Ubuntu على هذا الهاتف</string>
+    <string name="agentsImportRemove">إزالة %1$s</string>
+    <string name="agentsImportRemoveBody">تُحذف ملفاته ومفاتيح مزوّده من Ubuntu على هذا الهاتف، ولا يُمسّ أي شيء آخر.</string>
+    <string name="agentsImportProblemUnsupported">هذا الملف ليس أرشيف tar أو zip ولا برنامج Linux يمكن لهذا الهاتف تشغيله.</string>
+    <string name="agentsImportProblemTooLarge">هذا الملف فارغ أو أكبر من أن يُفكَّك على هذا الهاتف.</string>
+    <string name="agentsImportProblemName">أعطه اسمًا قصيرًا بحروف لاتينية صغيرة وغير مستخدم.</string>
+    <string name="agentsImportProblemProgram">يجب أن يكون البرنامج مسارًا بسيطًا داخل الأرشيف، بلا شرطة في البداية وبلا نقطتين متتاليتين.</string>
+    <string name="agentsImportProblemArguments">في إحدى الوسائط فاصل سطر، أو أن عددها كبير جدًا.</string>
+    <string name="agentsImportProblemProvider">يجب أن يُقرأ مفتاح المزوّد على هيئة NAME=value، واسمه بحروف كبيرة.</string>
+    <string name="agentsImportProblemArchive">رُفض الأرشيف: فيه رابط أو جهاز أو بيانات أكثر مما يجوز للاستيراد كتابته.</string>
+    <string name="agentsImportProblemStorage">تعذّرت قراءة Ubuntu على هذا الهاتف أو الكتابة فيه.</string>
 </resources>

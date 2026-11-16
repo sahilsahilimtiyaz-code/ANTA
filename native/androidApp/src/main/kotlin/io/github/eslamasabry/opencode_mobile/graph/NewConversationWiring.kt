@@ -519,11 +519,13 @@ class AndroidNewConversationHost(
 
     private fun phoneFacts(): List<PhoneChatFact> =
         phoneAgents.state.value.agents.mapNotNull { row ->
-            val descriptor = AgentCatalog.builtIn.byId(AgentId(row.id)) ?: return@mapNotNull null
+            // An imported agent is not in the bundled catalog: its row carries its own name and mark, so a chat can
+            // name it (its id is the helper's provider id).
+            val descriptor = AgentCatalog.builtIn.byId(AgentId(row.id))
             PhoneChatFact(
-                id = descriptor.id,
+                id = descriptor?.id ?: AgentId(row.id),
                 name = row.name,
-                iconKey = descriptor.iconKey,
+                iconKey = descriptor?.iconKey ?: row.id,
                 // The Agents card's own rule, so the card's New conversation and this list agree.
                 ready = phoneAgentStartsConversation(row),
                 // Flutter's fixAction: install, sign in, phone check, resume.

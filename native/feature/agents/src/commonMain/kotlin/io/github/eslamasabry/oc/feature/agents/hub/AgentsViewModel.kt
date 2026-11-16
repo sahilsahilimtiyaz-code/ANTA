@@ -9,6 +9,7 @@ import dev.zacsweers.metro.binding
 import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import io.github.eslamasabry.oc.core.common.Outcome
 import io.github.eslamasabry.oc.core.common.ids.ProfileId
+import io.github.eslamasabry.oc.engine.agents.imported.ImportedAgents
 import io.github.eslamasabry.oc.core.common.ids.SessionId
 import io.github.eslamasabry.oc.ui.routes.AgentsRoute
 import io.github.eslamasabry.oc.ui.routes.AppNavigator
@@ -32,7 +33,8 @@ import kotlinx.coroutines.launch
 @Inject
 @ViewModelKey
 @ContributesIntoMap(AppScope::class, binding = binding<ViewModel>())
-public class AgentsViewModel(
+public @Suppress("LongParameterList")
+class AgentsViewModel(
     computers: AgentComputers,
     phone: PhoneAgents,
     private val nav: AppNavigator,
@@ -41,6 +43,7 @@ public class AgentsViewModel(
     phoneCheckers: Set<PhoneAgentChecker>,
     accounts: AgentAccounts,
     drafts: AgentHandoffDrafts,
+    imported: ImportedAgents,
     clock: Clock,
 ) : ViewModel(), AgentsActions, AgentsHubActions {
     private val presenter =
@@ -60,6 +63,7 @@ public class AgentsViewModel(
                 nav.open(io.github.eslamasabry.oc.ui.routes.ChatsRoute.New(profile = profile, phoneAgent = agent))
             },
             openSignIn = { owner, agent -> nav.open(AgentsRoute.SignInTerminal(owner, agent)) },
+            imported = imported,
         )
 
     public val state: StateFlow<AgentsUi> = presenter.state
@@ -199,4 +203,19 @@ public class AgentsViewModel(
     override fun cancelRemoval(): Unit = presenter.cancelRemoval()
 
     override fun confirmRemoval(): Unit = presenter.confirmRemoval()
+
+    override fun openImport(): Unit = presenter.openImport()
+
+    override fun closeImport(): Unit = presenter.closeImport()
+
+    override fun pickImportFile(): Unit = presenter.pickImportFile()
+
+    override fun installImport(name: String, command: String, args: String, providers: List<Pair<String, String>>): Unit =
+        presenter.installImport(name, command, args, providers)
+
+    override fun requestRemoveImported(id: String): Unit = presenter.requestRemoveImported(id)
+
+    override fun cancelRemoveImported(): Unit = presenter.cancelRemoveImported()
+
+    override fun confirmRemoveImported(): Unit = presenter.confirmRemoveImported()
 }
