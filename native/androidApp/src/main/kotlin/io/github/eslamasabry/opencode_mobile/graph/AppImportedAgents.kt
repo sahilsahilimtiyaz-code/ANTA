@@ -50,8 +50,6 @@ import kotlinx.coroutines.withContext
 @SingleIn(AppScope::class)
 @Inject
 @ContributesBinding(AppScope::class, binding = binding<ImportedAgents>())
-private const val HEAD_BYTES = 64
-
 class AppImportedAgents(
     private val app: Application,
     private val dispatchers: AppDispatchers,
@@ -190,6 +188,9 @@ class AppImportedAgents(
     private fun payloads(): ImportedAgentPayloads = ImportedAgentPayloads(File(linux.rootfs, "home/oc"))
 
     public companion object {
+        /** Enough of a picked file to tell an archive from a program. */
+        private const val HEAD_BYTES = 64
+
         /**
          * The stored list, read where a helper start needs its providers. A helper start runs on the io thread (the
          * file is a few hundred bytes) and must not wait for the page's own read to have finished.
